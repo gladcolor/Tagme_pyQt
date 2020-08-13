@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'Tagme.ui'
+#
+# Created by: PyQt5 UI code generator 5.12.3
+#
+# WARNING! All changes made in this file will be lost!
+from PyQt5.QtGui import QPixmap
+
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(577, 394)
+        self.bnImage = QtWidgets.QPushButton(Form)
+        self.bnImage.setGeometry(QtCore.QRect(190, 240, 75, 23))
+        self.bnImage.setObjectName("bnImage")
+        self.pushButton_2 = QtWidgets.QPushButton(Form)
+        self.pushButton_2.setGeometry(QtCore.QRect(350, 240, 75, 23))
+        self.pushButton_2.setObjectName("pushButton_2")
+        self.lb_Image = QtWidgets.QLabel(Form)
+        self.lb_Image.setGeometry(QtCore.QRect(160, 50, 201, 131))
+        self.lb_Image.setObjectName("lb_Image")
+
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
+        
+        QtGui.QShortcut(QtCore.Qt.Key_Up, MainWindow, self.fooUp)
+        QtGui.QShortcut(QtCore.Qt.Key_Down, MainWindow, self.fooDown)
+        QtGui.QShortcut(QtCore.Qt.Key_Left, MainWindow, self.fooLeft)
+        QtGui.QShortcut(QtCore.Qt.Key_Right, MainWindow, self.fooRight)
+
+    def retranslateUi(self, Form):
+        _translate = QtCore.QCoreApplication.translate
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.bnImage.setText(_translate("Form", "Image"))
+        self.pushButton_2.setText(_translate("Form", "PushButton"))
+        self.lb_Image.setText(_translate("Form", "TextLabel"))
+
+    def fooUp(self):
+        print("up")
+	
+    def fooDown(self):
+        print("down")
+	
+    def fooLeft(self):
+        print("left")
+	
+    def fooRight(self):
+        print("right")   
