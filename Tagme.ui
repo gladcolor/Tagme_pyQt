@@ -6,40 +6,24 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1284</width>
-    <height>752</height>
+    <width>1257</width>
+    <height>731</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QPushButton" name="bnImage">
-   <property name="geometry">
-    <rect>
-     <x>510</x>
-     <y>700</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="focusPolicy">
-    <enum>Qt::NoFocus</enum>
-   </property>
-   <property name="text">
-    <string>Image</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="lb_Image">
    <property name="geometry">
     <rect>
-     <x>150</x>
+     <x>200</x>
      <y>60</y>
-     <width>591</width>
-     <height>551</height>
+     <width>600</width>
+     <height>600</height>
     </rect>
    </property>
    <property name="text">
-    <string>Image</string>
+    <string>Current Image</string>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -49,13 +33,13 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>70</y>
-     <width>121</width>
-     <height>101</height>
+     <y>60</y>
+     <width>120</width>
+     <height>120</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Previous Image</string>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -65,13 +49,13 @@
    <property name="geometry">
     <rect>
      <x>860</x>
-     <y>70</y>
-     <width>111</width>
-     <height>101</height>
+     <y>60</y>
+     <width>120</width>
+     <height>120</height>
     </rect>
    </property>
    <property name="text">
-    <string>TextLabel</string>
+    <string>Next Image</string>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -100,7 +84,16 @@
     </rect>
    </property>
    <property name="focusPolicy">
-    <enum>Qt::NoFocus</enum>
+    <enum>Qt::ClickFocus</enum>
+   </property>
+   <property name="inputMethodHints">
+    <set>Qt::ImhNone</set>
+   </property>
+   <property name="verticalScrollBarPolicy">
+    <enum>Qt::ScrollBarAlwaysOff</enum>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QTableWidget" name="twImage">
@@ -136,7 +129,7 @@
     <string>Auto Scroll</string>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
+  <widget class="QCheckBox" name="cbMultiTags">
    <property name="geometry">
     <rect>
      <x>970</x>
@@ -147,6 +140,55 @@
    </property>
    <property name="text">
     <string>Multi-Tag</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="bnSave">
+   <property name="geometry">
+    <rect>
+     <x>1170</x>
+     <y>30</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="teNote">
+   <property name="geometry">
+    <rect>
+     <x>830</x>
+     <y>240</y>
+     <width>151</width>
+     <height>171</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="bnLast">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>70</y>
+     <width>51</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="bnNext">
+   <property name="geometry">
+    <rect>
+     <x>810</x>
+     <y>60</y>
+     <width>41</width>
+     <height>91</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&gt;</string>
    </property>
   </widget>
  </widget>
