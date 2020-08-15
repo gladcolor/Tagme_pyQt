@@ -4,8 +4,14 @@
 import sys
 import os
 import glob
-import time
+import logging
+import logging.config
 import csv
+import yaml
+from natsort import natsorted, ns
+
+from datetime import datetime
+
 
 from PyQt5.QtGui import QPixmap
 from PyQt5 import QtGui, QtCore
@@ -20,18 +26,32 @@ from PyQt5.QtGui import QColor, QBrush
 from TagmeUI import Ui_Form
 
 IMG_SUFFIX = ['*.jpg']
-IMG_DIR = r'K:\Research\Tagme\tagme\src\assets\Image'
-TAGS = [("E", "Elevated main entry"),\
-        ("F", "Solid foundation")]
-TAGS_LATTERS = [x[0] for x in TAGS]
+
+
+def setup_logging(default_path='log_config.yaml', logName='', default_level=logging.DEBUG):
+    path = default_path
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+            if logName != '':
+                config["handlers"]["file"]['filename'] = logName
+            logging.config.dictConfig(config)
+    else:
+        logging.basicConfig(level=default_level)
+
+
+yaml_path = 'log_config.yaml'
+setup_logging(yaml_path, logName="info.log")
+
 
 class MyMainForm(QMainWindow, Ui_Form):
     def __init__(self, parent=None):
         super(MyMainForm, self).__init__(parent)
         self.setupUi(self)
         self.ImageDir = r''
-        self. result_file = r''
+        self.result_file = r''
         #��ӵ�¼��ť�źźͲۡ�ע��display��������С����()
+        # self.
 
         self.bnImageDir.clicked.connect(self.getImageDir)
         self.cbMultiTags.clicked.connect(self.multTag_clicked)
@@ -39,14 +59,20 @@ class MyMainForm(QMainWindow, Ui_Form):
         self.bnNext.clicked.connect(self.goNext)
         self.bnLast.clicked.connect(self.goLast)
         self.teImage_folder.textChanged.connect(self.teImage_folder_changed)
+        self.teNote.textChanged.connect(self.teNote_changed)
         self.bnSave.clicked.connect(self.handleSave)
 
         self.jpg_file_idx = 0
+        self.TAGS = []
         self.imageList = []
-        self.TAG_LATTERS = [x[0] for x in TAGS]
+        self.TAG_LATTERS = []
+        self.press_count = 0
+        self.save_count = 10
+
+        self.read_tag_file()
         
         self.checkboxes = []
-        self.cboxes_states = [False] * len(TAGS)
+        self.cboxes_states = [False] * len(self.TAGS)
 
         # pos_Image =self.lb_Image.pos()
         geo_Image = self.lb_Image.geometry()
@@ -55,13 +81,12 @@ class MyMainForm(QMainWindow, Ui_Form):
         # print("pos_Image: ", pos_Image)
         # print("pos_geometry: ", pos_geometry)
 
-        cb_column_y = Image_bottom - len(TAGS) * 30
-        for idx, tag in enumerate(TAGS):
-        	        
-            cb = QCheckBox(tag[0] + ": " + tag[1],self)
+        cb_column_y = Image_bottom - len(self.TAGS) * 30
+        for idx, tag in enumerate(self.TAGS):
+            cb = QCheckBox(tag[0] + ": " + tag[1], self)
             cb.adjustSize()
             cb.stateChanged.connect(self.clickBox)
-            cb.move(Image_right + 20, cb_column_y +  idx * 30)
+            cb.move(Image_right + 20, cb_column_y + idx * 30)
             self.checkboxes.append(cb)
 
         self.twImage.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -73,6 +98,11 @@ class MyMainForm(QMainWindow, Ui_Form):
         self.twImage.itemSelectionChanged.connect(self.selected_changed)
 
         self.setFocus()
+
+    def teNote_changed(self):
+        text = self.teNote.toPlainText()
+        item = QTableWidgetItem(text)
+        self.twImage.setItem(self.jpg_file_idx, 2, item)
 
     def teImage_folder_changed(self):
         # time.sleep(0.5)
@@ -100,15 +130,35 @@ class MyMainForm(QMainWindow, Ui_Form):
             # print('Checked')
             self.cbAutoScroll.setChecked(False)
 
+    def read_tag_file(self):
+        try:
+            tag_file = "Tags.txt"
+            if os.path.exists(tag_file):
+                f = open(tag_file, 'r', encoding='utf8')
+                lines = f.readlines()
+                for line in lines:
+                    fields = line.split(': ')
+                    self.TAGS.append(fields)
+                self.TAG_LATTERS =  [x[0] for x in self.TAGS]
+                f.close()
+        except Exception as e:
+            print("Error in read_tag_file():", e)
+            f.close()
+
     def writeTags(self):
+        old_tags = self.getTagsFromTable()
+        logging.info("old_tags：%s", old_tags)
         tags = []
         for i in range(len(self.cboxes_states)):
-            if self.cboxes_states[i]:
-                tag = TAGS_LATTERS[i]
+            if self.checkboxes[i].isChecked():
+                tag = self.TAG_LATTERS[i]
                 tags.append(tag)
         tags = ';'.join(tags)
+        logging.info("tag：%s", tags)
         item = QTableWidgetItem(str(tags))
         self.twImage.setItem(self.jpg_file_idx, 0, item)
+
+
 
     def getImageList(self, suffixes, image_dir):
         # get images
@@ -116,6 +166,7 @@ class MyMainForm(QMainWindow, Ui_Form):
 
         for suffix in suffixes:
             image_list += glob.glob(os.path.join(image_dir, suffix))
+        image_list = natsorted(image_list)
         return image_list
         
     def getImageDir(self):
@@ -137,14 +188,14 @@ class MyMainForm(QMainWindow, Ui_Form):
     def clickBox(self, state):
 
         for idx, cb in enumerate(self.checkboxes):
-            self.cboxes_states[idx] = cb.isChecked()
-            print("self.cboxes_states: ", self.cboxes_states)
+            # self.cboxes_states[idx] = cb.isChecked()
+            if cb.isChecked():
+                cb.setStyleSheet("background-color: lightgreen")
+            else:
+                cb.setStyleSheet("background-color: none")
+            # print("self.cboxes_states: ", self.cboxes_states)
 
-
-        # else:
-        #     print('Unchecked')
-
-        self.writeTags()
+        # logging.info("self.cboxes_states: %s", self.cboxes_states)
 
         self.setFocus()
 
@@ -179,27 +230,47 @@ class MyMainForm(QMainWindow, Ui_Form):
             self.lb_Image_R.setText("")
             self.lb_Image.setText("")
 
+        self.jpg_file_idx = 0
+        self.twImage.selectRow(self.jpg_file_idx)
+
     def selected_changed(self):
+
+        # for cb in self.checkboxes:
+        #     cb.setChecked(False).
+        logging.info("Selected changed. ")
+
         index = self.twImage.currentIndex().row()
         if index > -1:
             self.jpg_file_idx = index
             self.drawImages()
 
-        self.getTagsFromTable()
+        # self.getTagsFromTable()
 
         self.setCheckboxes()
+        self.setNote()
+        logging.info("Selected change ended. \n")
 
         self.setFocus()
         
     def keyPressEvent(self, e):
 
         try:
-            self.setFocus()
+            previous_row = self.jpg_file_idx
 
-            print(e.text())
+            # if keys change
+            key_index = self.is_key_in_tags(e.text(), self.TAG_LATTERS)
+            if key_index > -1:
+                self.press_count += 1
+                state = self.checkboxes[key_index].isChecked()
+                self.checkboxes[key_index].setChecked(not state)
+                self.writeTags()
 
-            print(e.key())
+                # if AutoScroll
+                if self.cbAutoScroll.checkState():
+                    self.jpg_file_idx += 1
+                # self.drawImages()
 
+            # if got arrow keys
             if (e.key() == QtCore.Qt.Key_Left) or (e.key() == QtCore.Qt.Key_Up):
                 # print("<--")
                 self.jpg_file_idx -= 1
@@ -212,16 +283,19 @@ class MyMainForm(QMainWindow, Ui_Form):
             if self.jpg_file_idx > (len(self.imageList) - 1):
                   self.jpg_file_idx = len(self.imageList) - 1
 
-            self.drawImages()
+            # if need to move to another row
+            if self.jpg_file_idx != previous_row:
+                self.twImage.selectRow(self.jpg_file_idx)
+                self.drawImages()
 
-            key_index = self.is_key_in_tags(e.text(), self.TAG_LATTERS)
-            if key_index > -1:
-                state = self.checkboxes[key_index].checkState()
-                self.checkboxes[key_index].setChecked(not state)
 
-                if self.cbAutoScroll.checkState():
-                    self.jpg_file_idx += 1
-                    self.drawImages()
+            if self.press_count == self.save_count:
+                self.press_count = 0
+                self.handleSave()
+
+                now = datetime.now()
+                time1 = now.strftime("%H:%M:%S")
+                self.lb_info.setText("Saved at " +  time1)
 
             self.setFocus()
 
@@ -235,21 +309,40 @@ class MyMainForm(QMainWindow, Ui_Form):
             row = self.twImage.item(index, 0)
             if row is not None:
                 tags = str(row.text())
-                print("tags: ", tags)
+                # print("tags: ", tags)
             tags = tags.split(';')
+
         self.setFocus()
+
+        logging.info("tags in getTagsFromTable(): %s", tags)
 
         return tags
 
+    def setNote(self):
+        index = self.twImage.currentIndex().row()
+        note_column = 2
+        note = ''
+        if index is not None:
+
+            item = self.twImage.item(index, note_column)
+            if item is not None:
+                note = str(item.text())
+                # print("item: ", item)
+            # tags = tags.split(';')
+        self.teNote.setText(note)
+        self.setFocus()
+
+
 
     def setCheckboxes(self):
-        tags = self.getTagsFromTable()
-
         for cb in self.checkboxes:
             cb.setChecked(False)
 
-        for idx, tag in enumerate(tags):
-            if len(tag) > 0:
+        tags = self.getTagsFromTable()
+        logging.info("tags in setCheckboxes(): %s", tags)
+        for tag in tags:
+            idx = self.is_key_in_tags(tag, self.TAG_LATTERS)
+            if idx > -1:
                 self.checkboxes[idx].setChecked(True)
 
     def drawImages(self):
@@ -286,7 +379,7 @@ class MyMainForm(QMainWindow, Ui_Form):
             return
         self.jpg_file_idx = min(self.jpg_file_idx + 1, len(self.imageList) - 1)
         self.twImage.selectRow(self.jpg_file_idx)
-        print("goNext(): ", self.jpg_file_idx)
+        # print("goNext(): ", self.jpg_file_idx)
         self.drawImages()
         self.setFocus()
 
@@ -295,7 +388,7 @@ class MyMainForm(QMainWindow, Ui_Form):
             return
         self.jpg_file_idx = max(self.jpg_file_idx - 1, 0)
         self.twImage.selectRow(self.jpg_file_idx)
-        print("goLast(): ", self.jpg_file_idx)
+        # print("goLast(): ", self.jpg_file_idx)
         self.drawImages()
         self.setFocus()
     
@@ -314,7 +407,7 @@ class MyMainForm(QMainWindow, Ui_Form):
             headertexts.append(self.twImage.horizontalHeaderItem(x).text())
 
 
-        with open(self.result_file, 'w') as stream:
+        with open(self.result_file, 'w', newline='', encoding='utf8') as stream:
             writer = csv.writer(stream)
             writer.writerow(headertexts)
             for row in range(self.twImage.rowCount()):
@@ -333,10 +426,11 @@ class MyMainForm(QMainWindow, Ui_Form):
         path = self.result_file
 
         if os.path.exists(path):
-            with open(path, 'r') as f:
-                reader = csv.DictReader(f, delimiter=',')
+            with open(path, 'r', newline='') as f:
+                reader = csv.reader(f, delimiter=',')
+                headers = next(reader)
                 self.twImage.setRowCount(0)
-                self.twImage.setColumnCount(0)
+                # self.twImage.setColumnCount(0)
 
                 for idx, rowdata in enumerate(reader):
                     row = self.twImage.rowCount()
@@ -345,6 +439,9 @@ class MyMainForm(QMainWindow, Ui_Form):
                     for column, data in enumerate(rowdata):
                         item = QTableWidgetItem(str(data))
                         self.twImage.setItem(row, column, item)
+
+            self.jpg_file_idx = 0
+            self.twImage.selectRow(self.jpg_file_idx)
 if __name__ == "__main__":
     #�̶��ģ�PyQt5������ҪQApplication����sys.argv�������в����б�ȷ���������˫������
     app = QApplication(sys.argv)
