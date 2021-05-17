@@ -153,7 +153,12 @@ class MyMainForm(QMainWindow, Ui_Form):
             if self.checkboxes[i].isChecked():
                 tag = self.TAG_LATTERS[i]
                 tags.append(tag)
+        # if not self.multTag_clicked():
+        #     tags = tag
+        # else:
+        #     tags = ';'.join(tags)
         tags = ';'.join(tags)
+
         logging.info("tag：%s", tags)
         item = QTableWidgetItem(str(tags))
         self.twImage.setItem(self.jpg_file_idx, 0, item)
@@ -262,7 +267,13 @@ class MyMainForm(QMainWindow, Ui_Form):
             if key_index > -1:
                 self.press_count += 1
                 state = self.checkboxes[key_index].isChecked()
-                self.checkboxes[key_index].setChecked(not state)
+                if not self.multTag_clicked():
+                    for cb in self.checkboxes:
+                        cb.setChecked(False)
+                    self.checkboxes[key_index].setChecked(True)
+
+                else:
+                    self.checkboxes[key_index].setChecked(not state)
                 self.writeTags()
 
                 # if AutoScroll

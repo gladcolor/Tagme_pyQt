@@ -1,7 +1,7 @@
 E: Elevated main entry
 L: Living in second floor
 F: solid Foundation
-P: Permeable pavements
+P: Permeable surface
 S: Sloped street
 N: None above
 X: Excluded, not used
